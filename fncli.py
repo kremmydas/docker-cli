@@ -82,7 +82,7 @@ def output():
                 extract_filename = extract_key.get('LogPath')
                 with open(extract_filename,'rb') as com:
                     output.write(str(com.read())+ "\n")
-                    click.secho('output.log file generated', bg='blue', fg='white')
+            click.secho('output.log file generated', bg='blue', fg='white')
     except docker.errors.NotFound as e:
         print(e)
 
