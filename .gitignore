@@ -1,0 +1,4 @@
+venv/
+cli.egg-info/
+fncli.pyc
+output.log
