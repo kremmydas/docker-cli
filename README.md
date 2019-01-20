@@ -26,12 +26,12 @@ $ fncli
 
 ## Note ##
 * In order to run the `output`command (consolidate the log output to a centralized log file),
-you must run `fncli` as sudo.
-  Also install with sudo the following packages:
+you must run `fncli` with sudo permission.
+  The following packages must also be installed with sudo:
   * sudo pip install click
   * sudo pip install docker
-  
-Otherwise, you receive an IOError error: [Errno 13] Permission denied
-`u'/var/lib/docker/containers/e37acce25759f8e3d3cfad3733f9c6602876f424420a0515264c487d481a4a46/e37acce25759f8e3d3cfad3733f9c6602876f424420a0515264c487d481a4a46-json.log'`
 
-* `fncli` has been written in Python and built in Ubuntu 18.04.
+Otherwise, you receive an IOError error: [Errno 13] Permission denied
+`u'/var/lib/docker/containers/e37acce2575...-json.log'`
+
+* `fncli` has been written in Python (with Click package) and built in Ubuntu 18.04.
