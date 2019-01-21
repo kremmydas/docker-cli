@@ -10,7 +10,7 @@
 
  You can see the list of commands.
 
- ![usage](/data/2019-01-20_18:21:37.png)
+ ![usage](/data/out.gif)
 
 ## Installation and running ##
 
