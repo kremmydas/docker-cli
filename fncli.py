@@ -131,7 +131,7 @@ def create(dockerfile):
     try:
         image = client.images.build(path=path, dockerfile=dockerfile, tag="my_app_image")
         container = client.containers.run('my_app_image', detach=True, ports={'5000/tcp': port}, name=container_name)
-        click.secho('Container created with name: {}. Flask app is running on http://0.0.0.0:{}/ on the host.'.format(container_name, port), bg='blue', fg='white')
+        click.secho('Container created with name: {}. App is running on http://0.0.0.0:{}/ on the host.'.format(container_name, port), bg='blue', fg='white')
     except (docker.errors.APIError, TypeError, OSError) as e:
         print(e)
 

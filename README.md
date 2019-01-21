@@ -10,7 +10,7 @@
 
  You can see the list of commands.
 
- ![usage](/data/out.gif)
+ ![usage](/data/Peek_2019-01-21 20-14.gif)
 
 ## Installation and running ##
 
@@ -31,7 +31,6 @@ you must run `fncli` with sudo permission.
   * sudo pip install --editable .
   * sudo pip install docker
 
-Otherwise, you receive an IOError error: [Errno 13] Permission denied
-`u'/var/lib/docker/containers/e37acce2575-json.log'`
+    Otherwise, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/e37acce2575-json.log'`
 
 * `fncli` has been written in Python (using the Click package and Docker SDK for Python) and built in Ubuntu 18.04.
