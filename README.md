@@ -32,6 +32,6 @@ you must run `fncli` with sudo permission.
   * sudo pip install docker
 
 Otherwise, you receive an IOError error: [Errno 13] Permission denied
-`u'/var/lib/docker/containers/e37acce2575...-json.log'`
+`u'/var/lib/docker/containers/e37acce2575-json.log'`
 
-* `fncli` has been written in Python (with Click package) and built in Ubuntu 18.04.
+* `fncli` has been written in Python (with Click package and Docker SDK for Python) and built in Ubuntu 18.04.
