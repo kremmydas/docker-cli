@@ -15,7 +15,7 @@ def cli():
 
 @click.command()
 def list():
-    """List running containers. Similar to docker ps command."""
+    """List running containers (similar to docker ps command)."""
     client = docker.from_env()
     click.secho("List of running containers", bg='blue', fg='white')
     click.secho("CONTAINER ID, NAMES, CREATED, COMMAND ", bg='blue', fg='white')
