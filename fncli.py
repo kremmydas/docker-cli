@@ -14,27 +14,36 @@ def cli():
     pass
 
 @click.command()
-def list():
-    """List running containers (similar to docker ps command)."""
+@click.option('--name', help='The name of a container')
+@click.argument('name')
+def status(name):
+    """Get the status and attributes of a container."""
+
     client = docker.from_env()
-    click.secho("List of running containers", bg='blue', fg='white')
-    click.secho("CONTAINER ID, NAMES, CREATED, COMMAND ", bg='blue', fg='white')
-    for container in client.containers.list():
-        # click.secho("List of running containers", bg='blue', fg='white')
-        # click.secho(str(container.name), bg='blue', fg='white')
-        print(str(container.short_id), str(container.name), str(container.attrs.get('Created')), str(container.attrs.get('Path')))
+
+    try:
+        container = client.containers.get(name)
+        column_width=25
+        attrs = [('CONTAINER ID', 'NAME', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED'), (str(container.short_id), str(container.name),  str(container.attrs.get('Config').get('Image')), str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'), str(container.attrs.get('Created')))]
+        for row in attrs:
+            for element in row:
+                print(element.ljust(column_width)),
+            print('')
+    except docker.errors.NotFound as e:
+        print(e)
 
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
 def top(name):
     """Similar to docker top command."""
+
     client = docker.from_env()
 
     try:
         container = client.containers.get(name)
-        click.secho(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])), bg='blue', fg='white')
-    except docker.errors.NotFound as e:
+        print(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])))
+    except (docker.errors.NotFound, docker.errors.APIError) as e:
         print(e)
 
 @click.command()
@@ -42,6 +51,7 @@ def top(name):
 @click.argument('name')
 def logs(name):
     """Fetch the logs of a container."""
+
     client = docker.from_env()
 
     try:
@@ -55,6 +65,7 @@ def logs(name):
 @click.argument('name')
 def follow(name):
     """Follow log output in real-time."""
+
     client = docker.from_env()
 
     try:
@@ -67,7 +78,9 @@ def follow(name):
 @click.command()
 def output():
     """Consolidate the log output of containers into one centralized log file."""
+
     client = docker.APIClient(base_url='unix://var/run/docker.sock')
+
     print("Enter container(s) name, separated by a space:")
     container_list = [str(x) for x in input().split()]
 
@@ -88,6 +101,7 @@ def output():
 @click.argument('name')
 def stats(name):
     """Monitor the resource usage of a container."""
+
     json_key={}
 
     client = docker.from_env()
@@ -102,15 +116,17 @@ def stats(name):
         # click.secho(str(json_normalize(data['cpu_usage'])), bg='blue', fg='white')
         # click.secho(str(json_normalize(data['memory'])), bg='blue', fg='white')
 
-    except docker.errors.NotFound as e:
-        print(e)
+    except (docker.errors.NotFound, KeyError) as e:
+        print('No such container or container not running!')
 
 @click.command()
 @click.option('--dockerfile', help='The full path of Dockerfile, e.g fncli create ./Dockerfile')
 @click.argument('dockerfile')
 def create(dockerfile):
     """Build a Docker Image from a Dockerfile and run an application."""
+
     client = docker.from_env()
+
     path = os.path.dirname(dockerfile)
 
     print("Enter container name:")
@@ -128,8 +144,8 @@ def create(dockerfile):
 # List of commands
 cli.add_command(create)
 cli.add_command(follow)
-cli.add_command(list)
 cli.add_command(logs)
 cli.add_command(output)
 cli.add_command(stats)
+cli.add_command(status)
 cli.add_command(top)
