@@ -3,31 +3,32 @@ import docker
 import os.path
 from six.moves import input
 import pandas as pd
+import json
 from pandas.io.json import json_normalize
 
 pd.set_option('display.expand_frame_repr', False)
 
 @click.group()
 def cli():
+    """A simple command line tool."""
     pass
 
-# list command -- Return a list with the IDs of running containers.
 @click.command()
 def list():
+    """List running containers. Similar to the docker ps command."""
     client = docker.from_env()
-    click.secho(str(client.containers.list()), bg='blue', fg='white')
+    click.secho("List of running containers", bg='blue', fg='white')
+    click.secho("CONTAINER ID, NAMES, CREATED, COMMAND ", bg='blue', fg='white')
+    for container in client.containers.list():
+        # click.secho("List of running containers", bg='blue', fg='white')
+        # click.secho(str(container.name), bg='blue', fg='white')
+        print(str(container.short_id), str(container.name), str(container.attrs.get('Created')), str(container.attrs.get('Path')))
 
-# info command -- Similar to docker info command
-@click.command()
-def info():
-    client = docker.from_env()
-    print(json.dumps(client.containers.client.info(), indent=4))
-
-# top command -- Similar to docker top command
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
 def top(name):
+    """Similar to docker top command."""
     client = docker.from_env()
 
     try:
@@ -36,18 +37,11 @@ def top(name):
     except docker.errors.NotFound as e:
         print(e)
 
-# name command - Return a list with the Names of running containers.
-@click.command()
-def name():
-    client = docker.from_env()
-    for container in client.containers.list():
-        click.secho(str(container.name), bg='blue', fg='white')
-
-# logs command -- View the logs of a container in shell.
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
 def logs(name):
+    """Fetch logs of containers."""
     client = docker.from_env()
 
     try:
@@ -56,11 +50,11 @@ def logs(name):
     except docker.errors.NotFound as e:
         print(e)
 
-# stream command -- Stream logs of a container in shell.
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
-def stream(name):
+def follow(name):
+    """Stream log file in real-time."""
     client = docker.from_env()
 
     try:
@@ -70,9 +64,9 @@ def stream(name):
     except docker.errors.NotFound as e:
         print(e)
 
-# output command -- Consolidate the log output of all the container instances into one centralized log file.
 @click.command()
 def output():
+    """Consolidate the log output of containers into one centralized log file."""
     client = docker.APIClient(base_url='unix://var/run/docker.sock')
     print("Enter container(s) name, separated by a space:")
     container_list = [str(x) for x in input().split()]
@@ -85,16 +79,15 @@ def output():
                 extract_filename = extract_key.get('LogPath')
                 with open(extract_filename,'rb') as com:
                     output.write(str(com.read())+ "\n")
-            click.secho('output.log file generated', bg='blue', fg='white')
+            click.secho('File output.log created.', bg='blue', fg='white')
     except docker.errors.NotFound as e:
         print(e)
 
-# stats command -- Monitor the resource usage of each container (CPU, memory, network).
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
 def stats(name):
-
+    """Monitor the resource usage of a container."""
     json_key={}
 
     client = docker.from_env()
@@ -112,21 +105,11 @@ def stats(name):
     except docker.errors.NotFound as e:
         print(e)
 
-# filter command -- Validate that the container instance is running by entering its Name and returning its ID.
-# Returns an empty list if the container is not running.
-@click.command()
-def filter():
-    client = docker.from_env()
-    print("Enter container name:")
-    container_name = input()
-    click.secho(str(client.containers.list(filters={"name":container_name})), bg='blue', fg='white')
-
-# create command -- Build a Docker Image from a given Dockerfile and an application.
-# Start a few instances of the Docker Image in different containers
 @click.command()
 @click.option('--dockerfile', help='The full path of Dockerfile, e.g fncli create ./Dockerfile')
 @click.argument('dockerfile')
 def create(dockerfile):
+    """Build a Docker Image from a Dockerfile and run an application."""
     client = docker.from_env()
     path = os.path.dirname(dockerfile)
 
@@ -144,12 +127,9 @@ def create(dockerfile):
 
 # List of commands
 cli.add_command(create)
-cli.add_command(filter)
-cli.add_command(info)
+cli.add_command(follow)
 cli.add_command(list)
 cli.add_command(logs)
-cli.add_command(name)
 cli.add_command(output)
 cli.add_command(stats)
-cli.add_command(stream)
 cli.add_command(top)

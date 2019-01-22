@@ -31,6 +31,7 @@ you must run `fncli` with sudo permission.
   * sudo pip install --editable .
   * sudo pip install docker
   * sudo pip install click
+  * sudo pip install pandas
 
     Otherwise, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/e37acce2575-json.log'`
 
