@@ -3,6 +3,7 @@ import docker
 import os.path
 from six.moves import input
 import json
+import pandas as pd
 
 @click.group()
 def cli():
@@ -29,7 +30,7 @@ def top(name):
 
     try:
         container = client.containers.get(name)
-        print(json.dumps(container.top(), indent=4))
+        click.secho(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])), bg='blue', fg='white')
     except docker.errors.NotFound as e:
         print(e)
 
