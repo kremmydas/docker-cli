@@ -2,8 +2,10 @@ import click
 import docker
 import os.path
 from six.moves import input
-import json
 import pandas as pd
+from pandas.io.json import json_normalize
+
+pd.set_option('display.expand_frame_repr', False)
 
 @click.group()
 def cli():
@@ -92,17 +94,21 @@ def output():
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
 def stats(name):
+
     json_key={}
+
     client = docker.from_env()
 
     try:
         container = client.containers.get(name)
         stats = container.stats(stream=False)
-        # print(json.dumps(container.stats(stream=False), indent=4))
-        json_key['cpu_usage'] = stats.get('cpu_stats')
-        json_key['memory_stats'] = stats.get('memory_stats')
-        json_key['network_stats'] = stats.get('networks')
-        print(json.dumps(json_key, indent=4))
+        #stats.keys()
+
+        click.secho(str(json_normalize(stats['networks'])), bg='blue', fg='white')
+        click.secho(str(json_normalize(stats['blkio_stats'])), bg='blue', fg='white')
+        # click.secho(str(json_normalize(data['cpu_usage'])), bg='blue', fg='white')
+        # click.secho(str(json_normalize(data['memory'])), bg='blue', fg='white')
+
     except docker.errors.NotFound as e:
         print(e)
 
