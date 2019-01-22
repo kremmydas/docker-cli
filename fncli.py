@@ -5,6 +5,7 @@ from six.moves import input
 import pandas as pd
 import json
 from pandas.io.json import json_normalize
+from dateutil.parser import parse
 
 pd.set_option('display.expand_frame_repr', False)
 
@@ -14,21 +15,25 @@ def cli():
     pass
 
 @click.command()
-@click.option('--name', help='The name of a container')
-@click.argument('name')
-def status(name):
-    """Get the status and attributes of a container."""
+def status():
+    """Get the status and attributes of containers. """
 
     client = docker.from_env()
 
     try:
-        container = client.containers.get(name)
+        headers = ('CONTAINER ID', 'IMAGE', 'NAME', 'COMMAND', 'STATUS', 'CREATED')
         column_width=25
-        attrs = [('CONTAINER ID', 'NAME', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED'), (str(container.short_id), str(container.name),  str(container.attrs.get('Config').get('Image')), str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'), str(container.attrs.get('Created')))]
-        for row in attrs:
-            for element in row:
-                print(element.ljust(column_width)),
-            print('')
+        for el in headers:
+            print(el.ljust(column_width)),
+        print('')
+
+        for container in client.containers.list(True):
+            column_width=25
+            attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),  str(container.name), str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'), str(parse(container.attrs.get('Created'))))]
+            for row in attrs:
+                for element in row:
+                    print(element.ljust(column_width)),
+                print('')
     except docker.errors.NotFound as e:
         print(e)
 
