@@ -30,6 +30,7 @@ you must run `fncli` with sudo permission.
   Before that, you must also run the following pip install commands with sudo:
   * sudo pip install --editable .
   * sudo pip install docker
+  * sudo pip install click
 
     Otherwise, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/e37acce2575-json.log'`
 
