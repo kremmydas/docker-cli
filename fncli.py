@@ -10,7 +10,7 @@ pd.set_option('display.expand_frame_repr', False)
 
 @click.group()
 def cli():
-    """A simple command line tool."""
+    """A simple command line tool for docker engine."""
     pass
 
 @click.command()
