@@ -15,7 +15,7 @@ def cli():
 
 @click.command()
 def list():
-    """List running containers. Similar to the docker ps command."""
+    """List running containers. Similar to docker ps command."""
     client = docker.from_env()
     click.secho("List of running containers", bg='blue', fg='white')
     click.secho("CONTAINER ID, NAMES, CREATED, COMMAND ", bg='blue', fg='white')
@@ -41,7 +41,7 @@ def top(name):
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
 def logs(name):
-    """Fetch logs of containers."""
+    """Fetch the logs of a container."""
     client = docker.from_env()
 
     try:
@@ -54,7 +54,7 @@ def logs(name):
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
 def follow(name):
-    """Stream log file in real-time."""
+    """Follow log output in real-time."""
     client = docker.from_env()
 
     try:
