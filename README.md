@@ -3,7 +3,7 @@
 `fncli` is a command line interface tool for docker engine:
  * it can build a Docker Image from a given Dockerfile and run a container
  * start a few instances of the Docker Image in different containers
- * validate that a container is running (returns an empty list if the container is not running)
+ * validate that the container instances are running
  * monitor the resource usage of each container (CPU, memory, network)
  * fetch logs of containers and stream logs real-time
  * consolidate the log output of all the container instances into one centralized log file
