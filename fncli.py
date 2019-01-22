@@ -7,6 +7,8 @@ import json
 from pandas.io.json import json_normalize
 from dateutil.parser import parse
 
+client = docker.from_env()
+
 pd.set_option('display.expand_frame_repr', False)
 
 @click.group()
@@ -17,8 +19,6 @@ def cli():
 @click.command()
 def status():
     """Get the status and attributes of containers. """
-
-    client = docker.from_env()
 
     try:
         headers = ('CONTAINER ID', 'IMAGE', 'NAME', 'COMMAND', 'STATUS', 'CREATED')
@@ -43,8 +43,6 @@ def status():
 def top(name):
     """Similar to docker top command."""
 
-    client = docker.from_env()
-
     try:
         container = client.containers.get(name)
         print(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])))
@@ -57,8 +55,6 @@ def top(name):
 def logs(name):
     """Fetch the logs of a container."""
 
-    client = docker.from_env()
-
     try:
         container = client.containers.get(name)
         click.secho(str(container.logs()), bg='blue', fg='white')
@@ -70,8 +66,6 @@ def logs(name):
 @click.argument('name')
 def follow(name):
     """Follow log output in real-time."""
-
-    client = docker.from_env()
 
     try:
         container = client.containers.get(name)
@@ -109,8 +103,6 @@ def stats(name):
 
     json_key={}
 
-    client = docker.from_env()
-
     try:
         container = client.containers.get(name)
         stats = container.stats(stream=False)
@@ -129,8 +121,6 @@ def stats(name):
 @click.argument('dockerfile')
 def create(dockerfile):
     """Build a Docker Image from a Dockerfile and run an application."""
-
-    client = docker.from_env()
 
     path = os.path.dirname(dockerfile)
 
