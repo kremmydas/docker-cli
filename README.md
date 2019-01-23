@@ -1,12 +1,12 @@
 # fncli
 
-`fncli` is a command line interface tool for docker engine:
- * it can build a Docker Image from a given Dockerfile and run a container
- * start a few instances of the Docker Image in different containers
- * validate that the container instances are running
- * monitor the resource usage of each container (CPU, memory, network)
- * fetch logs of containers and stream logs real-time
- * consolidate the log output of all the container instances into one centralized log file
+`fncli` is a command line interface tool for docker engine that is able to do the following:
+ * Build a Docker Image from a given Dockerfile and run a container
+ * Start a few instances of the Docker Image in different containers
+ * Validate that the container instances are running
+ * Monitor the resource usage of each container (CPU, I/O, memory, network)
+ * Fetch logs of containers and stream logs real-time
+ * Consolidate the log output of all the container instances into one centralized log file.
 
  You can see the list of commands.
 
@@ -33,6 +33,6 @@ you must run `fncli` with sudo permission.
   * sudo pip install click
   * sudo pip install pandas
 
-    Otherwise, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/e37acce2575-json.log'`
+    Otherwise, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/e37acce2575...-json.log'`
 
 * `fncli` has been written in Python (using the Click package and Docker SDK for Python) and built in Ubuntu 18.04.
