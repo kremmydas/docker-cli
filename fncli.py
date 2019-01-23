@@ -26,13 +26,14 @@ def list():
     try:
         headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST PORTS', 'NAMES')
         column_width=30
-        for el in headers:
-            print(el.ljust(column_width)),
+        for element in headers:
+            print(element.ljust(column_width)),
         print('')
 
         for container in client.containers.list(True):
             column_width=30
 
+            # Host port binding
             portbind = container.attrs.get('HostConfig').get('PortBindings')
             if not portbind:
                 port = 'None'
@@ -40,11 +41,16 @@ def list():
                 it = iter(portbind.values())
                 port = next(it)[0].get('HostPort')
 
-            attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')), str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'), str(parse(container.attrs.get('Created')).ctime()), str(port), str(container.name))]
+            # container attributes
+            attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),
+                    str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'),
+                    str(parse(container.attrs.get('Created')).ctime()), str(port), str(container.name))]
+
             for row in attrs:
                 for element in row:
                     print(element.ljust(column_width)),
                 print('')
+
     except docker.errors.NotFound as e:
         print(e)
 
@@ -59,6 +65,7 @@ def stats(name):
         container = client.containers.get(name)
         stats = container.stats(stream=False)
 
+        # I/O stats
         blkio = stats.get('blkio_stats').get('io_service_bytes_recursive')
         # in case blkio list is empty
         if not blkio:
@@ -68,14 +75,17 @@ def stats(name):
             blkio_read = size(blkio[0].get('value'), system=si) # IndexError: list index out of range
             blkio_write = size(blkio[1].get('value'), system=si) # IndexError: list index out of range
 
+        # Network stats
         rx = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
         tx = size(stats.get('networks').get('eth0').get('tx_bytes'), system=si)
 
+        # Memory stats
         mem = stats.get('memory_stats')
         mem_usage = mem.get('stats').get('active_anon')
         mem_limit = mem.get('limit')
         mem_percent = ("%.2f"%((mem_usage / mem_limit)*100))
 
+        #CPU stats
         # this is taken directly from docker client:
         # https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
         cpu_percent = 0.0
@@ -91,11 +101,17 @@ def stats(name):
         if system_delta > 0.0 and cpu_delta > 0.0:
             cpu_percent = ("%.2f"%(cpu_delta / system_delta * 100.0 * cpu_count))
 
-        attrs = [('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT', 'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS'), (str(container.short_id), str(container.name), str(cpu_percent), str(size((mem_usage),system=si) + " / " + size((mem_limit),system=si)), str(mem_percent), str(rx + " / " + tx), str(blkio_read + " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
+        # container attributes
+        attrs = [('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT', 'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS'),
+                (str(container.short_id), str(container.name), str(cpu_percent), str(size((mem_usage),system=si) + " / "
+                + size((mem_limit),system=si)), str(mem_percent), str(rx + " / " + tx), str(blkio_read +
+                " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
+
         for row in attrs:
             for element in row:
                 print(element.ljust(column_width)),
             print('')
+
     except (docker.errors.NotFound, KeyError, AttributeError) as e:
         print('No such container or container not running!')
 
@@ -151,8 +167,8 @@ def cat():
                 inspect = client.inspect_container(container)
                 extract_key = { k:v for k,v in inspect.items() if 'LogPath' in k }
                 extract_filename = extract_key.get('LogPath')
-                with open(extract_filename,'rb') as com:
-                    output.write(str(com.read())+ "\n")
+                with open(extract_filename,'rb') as write_file:
+                    output.write(str(write_file.read())+ "\n")
             click.secho('File output.log created.', bg='blue', fg='white')
     except docker.errors.NotFound as e:
         print(e)
@@ -173,7 +189,8 @@ def create(dockerfile):
     try:
         image = client.images.build(path=path, dockerfile=dockerfile, tag="my_app_image")
         container = client.containers.run('my_app_image', detach=True, ports={'5000/tcp': port}, name=container_name)
-        click.secho('Container created with name: {}. App is running on http://0.0.0.0:{}/ on the host.'.format(container_name, port), bg='blue', fg='white')
+        click.secho('Container created with name: {}. App is running on http://0.0.0.0:{}/ on the host.'
+        .format(container_name, port), bg='blue', fg='white')
     except (docker.errors.APIError, TypeError, OSError) as e:
         print(e)
 
