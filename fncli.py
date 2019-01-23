@@ -4,7 +4,6 @@ import docker
 import os.path
 from six.moves import input
 import pandas as pd
-import json
 from pandas.io.json import json_normalize
 from dateutil.parser import parse
 from hurry.filesize import size, si
@@ -33,7 +32,7 @@ def list():
         for container in client.containers.list(True):
             column_width=30
 
-            # Host port binding
+            # Get host port binding
             portbind = container.attrs.get('HostConfig').get('PortBindings')
             if not portbind:
                 port = 'None'
@@ -55,62 +54,65 @@ def list():
         print(e)
 
 @click.command()
-@click.option('--name', help='The name of a running container')
-@click.argument('name')
-def stats(name):
-    """Monitor the resource usage of a container."""
+def stats():
+    """Monitor the resource usage of containers."""
 
     try:
+        headers = ('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT', 'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS')
         column_width=25
-        container = client.containers.get(name)
-        stats = container.stats(stream=False)
+        for element in headers:
+            print(element.ljust(column_width)),
+        print('')
 
-        # I/O stats
-        blkio = stats.get('blkio_stats').get('io_service_bytes_recursive')
-        # in case blkio list is empty
-        if not blkio:
-            blkio_read = '0'
-            blkio_write = '0'
-        else:
-            blkio_read = size(blkio[0].get('value'), system=si) # IndexError: list index out of range
-            blkio_write = size(blkio[1].get('value'), system=si) # IndexError: list index out of range
+        for container in client.containers.list():
+            column_width=25
+            stats = container.stats(stream=False)
 
-        # Network stats
-        rx = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
-        tx = size(stats.get('networks').get('eth0').get('tx_bytes'), system=si)
+            # I/O stats
+            blkio = stats.get('blkio_stats').get('io_service_bytes_recursive')
+            # in case blkio list is empty
+            if not blkio:
+                blkio_read = '0'
+                blkio_write = '0'
+            else:
+                blkio_read = size(blkio[0].get('value'), system=si) # IndexError: list index out of range
+                blkio_write = size(blkio[1].get('value'), system=si) # IndexError: list index out of range
 
-        # Memory stats
-        mem = stats.get('memory_stats')
-        mem_usage = mem.get('stats').get('active_anon')
-        mem_limit = mem.get('limit')
-        mem_percent = ("%.2f"%((mem_usage / mem_limit)*100))
+            # Network stats
+            rx = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
+            tx = size(stats.get('networks').get('eth0').get('tx_bytes'), system=si)
 
-        #CPU stats
-        # this is taken directly from docker client:
-        # https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
-        cpu_percent = 0.0
-        cpu = stats.get('cpu_stats')
-        pre_cpu = stats.get('precpu_stats')
-        cpu_total = cpu.get('cpu_usage').get('total_usage')
-        pre_cpu_total = pre_cpu.get('cpu_usage').get('total_usage')
-        cpu_count = cpu.get('online_cpus')
+            # Memory stats
+            mem = stats.get('memory_stats')
+            mem_usage = mem.get('stats').get('active_anon')
+            mem_limit = mem.get('limit')
+            mem_percent = ("%.2f"%((mem_usage / mem_limit)*100))
 
-        cpu_delta = cpu_total - pre_cpu_total
-        system_delta = cpu.get('system_cpu_usage') - pre_cpu.get('system_cpu_usage')
+            #CPU stats
+            # this is taken directly from docker client:
+            # https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
+            cpu_percent = 0.0
+            cpu = stats.get('cpu_stats')
+            pre_cpu = stats.get('precpu_stats')
+            cpu_total = cpu.get('cpu_usage').get('total_usage')
+            pre_cpu_total = pre_cpu.get('cpu_usage').get('total_usage')
+            cpu_count = cpu.get('online_cpus')
 
-        if system_delta > 0.0 and cpu_delta > 0.0:
-            cpu_percent = ("%.2f"%(cpu_delta / system_delta * 100.0 * cpu_count))
+            cpu_delta = cpu_total - pre_cpu_total
+            system_delta = cpu.get('system_cpu_usage') - pre_cpu.get('system_cpu_usage')
 
-        # container attributes
-        attrs = [('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT', 'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS'),
-                (str(container.short_id), str(container.name), str(cpu_percent), str(size((mem_usage),system=si) + " / "
-                + size((mem_limit),system=si)), str(mem_percent), str(rx + " / " + tx), str(blkio_read +
-                " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
+            if system_delta > 0.0 and cpu_delta > 0.0:
+                cpu_percent = ("%.2f"%(cpu_delta / system_delta * 100.0 * cpu_count))
 
-        for row in attrs:
-            for element in row:
-                print(element.ljust(column_width)),
-            print('')
+            # container attributes
+            attrs = [(str(container.short_id), str(container.name), str(cpu_percent), str(size((mem_usage),system=si) + " / "
+                    + size((mem_limit),system=si)), str(mem_percent), str(rx + " / " + tx), str(blkio_read +
+                    " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
+
+            for row in attrs:
+                for element in row:
+                    print(element.ljust(column_width)),
+                print('')
 
     except (docker.errors.NotFound, KeyError, AttributeError) as e:
         print('No such container or container not running!')
@@ -158,7 +160,7 @@ def cat():
 
     client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
-    print("Enter container(s) name, separated by a space:")
+    print("Enter container(s) name, as a space-delimited list:")
     container_list = [str(x) for x in input().split()]
 
     try:
