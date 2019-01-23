@@ -1,3 +1,4 @@
+from __future__ import division
 import click
 import docker
 import os.path
@@ -6,6 +7,8 @@ import pandas as pd
 import json
 from pandas.io.json import json_normalize
 from dateutil.parser import parse
+from hurry.filesize import size, si
+
 
 client = docker.from_env()
 
@@ -22,13 +25,13 @@ def status():
 
     try:
         headers = ('CONTAINER ID', 'IMAGE', 'NAME', 'COMMAND', 'STATUS', 'CREATED')
-        column_width=25
+        column_width=30
         for el in headers:
             print(el.ljust(column_width)),
         print('')
 
         for container in client.containers.list(True):
-            column_width=25
+            column_width=30
             attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),  str(container.name), str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'), str(parse(container.attrs.get('Created'))))]
             for row in attrs:
                 for element in row:
@@ -36,6 +39,56 @@ def status():
                 print('')
     except docker.errors.NotFound as e:
         print(e)
+
+@click.command()
+@click.option('--name', help='The name of a running container')
+@click.argument('name')
+def stats(name):
+    """Monitor the resource usage of a container."""
+
+    try:
+        column_width=25
+        container = client.containers.get(name)
+        stats = container.stats(stream=False)
+
+        blkio = stats.get('blkio_stats').get('io_service_bytes_recursive')
+        # blkio_read = size(blkio[0].get('value'), system=si) # IndexError: list index out of range
+        # blkio_write = size(blkio[1].get('value'), system=si) # IndexError: list index out of range
+        blkio_read = 'test'
+        blkio_write = 'test'
+        rx = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
+        tx = size(stats.get('networks').get('eth0').get('tx_bytes'), system=si)
+
+        mem = stats.get('memory_stats')
+        mem_usage = mem.get('stats').get('active_anon')
+        mem_limit = mem.get('limit')
+        mem_percent = ("%.2f"%((mem_usage / mem_limit)*100))
+
+        # this is taken directly from docker client:
+        #   https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
+        cpu_percent = 0.0
+        cpu = stats.get('cpu_stats')
+        pre_cpu = stats.get('precpu_stats')
+        cpu_total = cpu.get('cpu_usage').get('total_usage')
+        pre_cpu_total = pre_cpu.get('cpu_usage').get('total_usage')
+        cpu_count = cpu.get('online_cpus')
+
+        cpu_delta = cpu_total - pre_cpu_total
+        system_delta = cpu.get('system_cpu_usage') - pre_cpu.get('system_cpu_usage')
+
+        if system_delta > 0.0 and cpu_delta > 0.0:
+            cpu_percent = ("%.2f"%(cpu_delta / system_delta * 100.0 * cpu_count))
+
+        attrs = [('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT', 'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS'), (str(container.short_id), str(container.name), str(cpu_percent), str(size((mem_usage),system=si) + " / " + size((mem_limit),system=si)), str(mem_percent), str(rx + " / " + tx), str(blkio_read + " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
+        for row in attrs:
+            for element in row:
+                print(element.ljust(column_width)),
+            print('')
+    except docker.errors.NotFound as e:
+        print(e)
+
+    except (docker.errors.NotFound, KeyError) as e:
+        print('No such container or container not running!')
 
 @click.command()
 @click.option('--name', help='The name of a running container')
@@ -94,27 +147,6 @@ def output():
             click.secho('File output.log created.', bg='blue', fg='white')
     except docker.errors.NotFound as e:
         print(e)
-
-@click.command()
-@click.option('--name', help='The name of a running container')
-@click.argument('name')
-def stats(name):
-    """Monitor the resource usage of a container."""
-
-    json_key={}
-
-    try:
-        container = client.containers.get(name)
-        stats = container.stats(stream=False)
-        #stats.keys()
-
-        click.secho(str(json_normalize(stats['networks'])), bg='blue', fg='white')
-        click.secho(str(json_normalize(stats['blkio_stats'])), bg='blue', fg='white')
-        # click.secho(str(json_normalize(data['cpu_usage'])), bg='blue', fg='white')
-        # click.secho(str(json_normalize(data['memory'])), bg='blue', fg='white')
-
-    except (docker.errors.NotFound, KeyError) as e:
-        print('No such container or container not running!')
 
 @click.command()
 @click.option('--dockerfile', help='The full path of Dockerfile, e.g fncli create ./Dockerfile')
