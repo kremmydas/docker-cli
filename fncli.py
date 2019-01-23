@@ -52,10 +52,14 @@ def stats(name):
         stats = container.stats(stream=False)
 
         blkio = stats.get('blkio_stats').get('io_service_bytes_recursive')
-        # blkio_read = size(blkio[0].get('value'), system=si) # IndexError: list index out of range
-        # blkio_write = size(blkio[1].get('value'), system=si) # IndexError: list index out of range
-        blkio_read = 'test'
-        blkio_write = 'test'
+        # in case blkio list is empty
+        if not blkio:
+            blkio_read = '0'
+            blkio_write = '0'
+        else:
+            blkio_read = size(blkio[0].get('value'), system=si) # IndexError: list index out of range
+            blkio_write = size(blkio[1].get('value'), system=si) # IndexError: list index out of range
+
         rx = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
         tx = size(stats.get('networks').get('eth0').get('tx_bytes'), system=si)
 
@@ -65,7 +69,7 @@ def stats(name):
         mem_percent = ("%.2f"%((mem_usage / mem_limit)*100))
 
         # this is taken directly from docker client:
-        #   https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
+        # https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
         cpu_percent = 0.0
         cpu = stats.get('cpu_stats')
         pre_cpu = stats.get('precpu_stats')
@@ -84,10 +88,7 @@ def stats(name):
             for element in row:
                 print(element.ljust(column_width)),
             print('')
-    except docker.errors.NotFound as e:
-        print(e)
-
-    except (docker.errors.NotFound, KeyError) as e:
+    except (docker.errors.NotFound, KeyError, AttributeError) as e:
         print('No such container or container not running!')
 
 @click.command()
