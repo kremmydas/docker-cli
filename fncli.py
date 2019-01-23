@@ -20,11 +20,11 @@ def cli():
     pass
 
 @click.command()
-def status():
+def list():
     """Get the status and attributes of containers. """
 
     try:
-        headers = ('CONTAINER ID', 'IMAGE', 'NAME', 'COMMAND', 'STATUS', 'CREATED')
+        headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST PORTS', 'NAMES')
         column_width=30
         for el in headers:
             print(el.ljust(column_width)),
@@ -32,7 +32,15 @@ def status():
 
         for container in client.containers.list(True):
             column_width=30
-            attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),  str(container.name), str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'), str(parse(container.attrs.get('Created'))))]
+
+            portbind = container.attrs.get('HostConfig').get('PortBindings')
+            if not portbind:
+                port = 'None'
+            else:
+                it = iter(portbind.values())
+                port = next(it)[0].get('HostPort')
+
+            attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')), str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'), str(parse(container.attrs.get('Created')).ctime()), str(port), str(container.name))]
             for row in attrs:
                 for element in row:
                     print(element.ljust(column_width)),
@@ -118,7 +126,7 @@ def logs(name):
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name')
-def follow(name):
+def tail(name):
     """Follow log output in real-time."""
 
     try:
@@ -129,7 +137,7 @@ def follow(name):
         print(e)
 
 @click.command()
-def output():
+def cat():
     """Consolidate the log output of containers into one centralized log file."""
 
     client = docker.APIClient(base_url='unix://var/run/docker.sock')
@@ -171,9 +179,9 @@ def create(dockerfile):
 
 # List of commands
 cli.add_command(create)
-cli.add_command(follow)
+cli.add_command(cat)
+cli.add_command(list)
 cli.add_command(logs)
-cli.add_command(output)
 cli.add_command(stats)
-cli.add_command(status)
+cli.add_command(tail)
 cli.add_command(top)

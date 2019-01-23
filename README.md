@@ -25,7 +25,7 @@ $ fncli
 ```
 
 ## Note ##
-* In order to run the `output`command (consolidate the log output to a centralized log file),
+* In order to run the `cat`command (consolidate the log output to a centralized log file),
 you must run `fncli` with sudo permission.
   Before that, you must also run the following pip install commands with sudo:
   * sudo pip install --editable .
