@@ -20,7 +20,7 @@ def list():
     """Get the status and attributes of containers. """
 
     try:
-        headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST PORTS', 'NAMES')
+        headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'PORTS', 'NAMES')
         column_width=30
         for element in headers:
             print(element.ljust(column_width)),
