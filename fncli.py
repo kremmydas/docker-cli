@@ -4,14 +4,11 @@ import docker
 import os.path
 from six.moves import input
 import pandas as pd
-from pandas.io.json import json_normalize
 from dateutil.parser import parse
 from hurry.filesize import size, si
 
 
 client = docker.from_env()
-
-pd.set_option('display.expand_frame_repr', False)
 
 @click.group()
 def cli():
@@ -54,7 +51,7 @@ def list():
         print(e)
 
 @click.command()
-def stats():
+def mon():
     """Monitor the resource usage of containers."""
 
     try:
@@ -201,6 +198,6 @@ cli.add_command(create)
 cli.add_command(cat)
 cli.add_command(list)
 cli.add_command(logs)
-cli.add_command(stats)
+cli.add_command(mon)
 cli.add_command(tail)
 cli.add_command(top)
