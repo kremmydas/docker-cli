@@ -7,7 +7,6 @@ import pandas as pd
 from dateutil.parser import parse
 from hurry.filesize import size, si
 
-
 client = docker.from_env()
 
 @click.group()
@@ -20,13 +19,13 @@ def list():
     """Get the status and attributes of containers. """
 
     try:
-        headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'PORTS', 'NAMES')
+        headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST IP / PORT', 'NAMES')
         column_width=30
         for element in headers:
             print(element.ljust(column_width)),
         print('')
 
-        for container in client.containers.list(True):
+        for container in client.containers.list():
             column_width=30
 
             # Get host port binding
@@ -37,10 +36,16 @@ def list():
                 it = iter(portbind.values())
                 port = next(it)[0].get('HostPort')
 
+            # Get host IP
+            ports = container.attrs.get('NetworkSettings').get('Ports')
+            for x in ports.values():
+                if x is not None:
+                    hostip = (x)[0].get('HostIp')
+
             # container attributes
             attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),
                     str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'),
-                    str(parse(container.attrs.get('Created')).ctime()), str(port), str(container.name))]
+                    str(parse(container.attrs.get('Created')).ctime()), str(hostip + ':' + port), str(container.name))]
 
             for row in attrs:
                 for element in row:
@@ -65,15 +70,15 @@ def mon():
             column_width=25
             stats = container.stats(stream=False)
 
-            # I/O stats
+            # Block I/O stats
             blkio = stats.get('blkio_stats').get('io_service_bytes_recursive')
-            # in case blkio list is empty
+            # in case blkio is empty --> IndexError: list index out of range
             if not blkio:
                 blkio_read = '0'
                 blkio_write = '0'
             else:
-                blkio_read = size(blkio[0].get('value'), system=si) # IndexError: list index out of range
-                blkio_write = size(blkio[1].get('value'), system=si) # IndexError: list index out of range
+                blkio_read = size(blkio[0].get('value'), system=si)
+                blkio_write = size(blkio[1].get('value'), system=si)
 
             # Network stats
             rx = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
@@ -85,7 +90,7 @@ def mon():
             mem_limit = mem.get('limit')
             mem_percent = ("%.2f"%((mem_usage / mem_limit)*100))
 
-            #CPU stats
+            # CPU stats
             # this is taken directly from docker client:
             # https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
             cpu_percent = 0.0
@@ -169,7 +174,7 @@ def cat():
                 with open(extract_filename,'rb') as write_file:
                     output.write(str(write_file.read())+ "\n")
             click.secho('File output.log created.', bg='blue', fg='white')
-    except docker.errors.NotFound as e:
+    except (docker.errors.NotFound, IOError) as e:
         print(e)
 
 @click.command()
