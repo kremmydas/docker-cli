@@ -38,9 +38,9 @@ def list():
 
             # Get host IP
             ports = container.attrs.get('NetworkSettings').get('Ports')
-            for x in ports.values():
-                if x is not None:
-                    hostip = (x)[0].get('HostIp')
+            for c_port in ports.values():
+                if c_port is not None:
+                    hostip = (c_port)[0].get('HostIp')
 
             # container attributes
             attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),
@@ -61,13 +61,13 @@ def mon():
 
     try:
         headers = ('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT', 'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS')
-        column_width=25
+        column_width=20
         for element in headers:
             print(element.ljust(column_width)),
         print('')
 
         for container in client.containers.list():
-            column_width=25
+            column_width=20
             stats = container.stats(stream=False)
 
             # Block I/O stats
@@ -199,8 +199,8 @@ def create(dockerfile):
         print(e)
 
 # List of commands
-cli.add_command(create)
 cli.add_command(cat)
+cli.add_command(create)
 cli.add_command(list)
 cli.add_command(logs)
 cli.add_command(mon)
