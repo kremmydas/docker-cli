@@ -16,7 +16,7 @@ def cli():
 
 @click.command()
 def list():
-    """Get the status and attributes of containers. """
+    """Show running containers."""
 
     try:
         headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST IP / PORT', 'NAMES')
