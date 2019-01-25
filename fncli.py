@@ -162,8 +162,7 @@ def cat():
 
     client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
-    print("Enter container(s) name, as a space-delimited list:")
-    container_list = [str(x) for x in input().split()]
+    container_list = [str(x) for x in input('Enter container(s) name, as a space-delimited list: ').split()]
 
     try:
         with open("output.log", 'w') as output:
@@ -185,10 +184,8 @@ def create(dockerfile):
 
     path = os.path.dirname(dockerfile)
 
-    print("Enter container name:")
-    container_name = input()
-    print("Enter port between 5000 - 7000:")
-    port = input()
+    container_name = input('Enter container name: ')
+    port = input('Enter port between 5000 -7000: ')
 
     try:
         image = client.images.build(path=path, dockerfile=dockerfile, tag="my_app_image")
