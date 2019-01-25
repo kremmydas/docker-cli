@@ -35,5 +35,5 @@ you must run `fncli` with sudo permission.
 
 * `fncli` has been written in Python (using the Click package and Docker SDK for Python).
 
-* Bash completion
-  Add the following into your .bashrc: eval "$(_FNCLI_COMPLETE=source fncli)"
+* Bash completion:
+  Add the following into your .bashrc: eval "$(_FNCLI_COMPLETE=source fncli)" 
