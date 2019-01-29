@@ -31,7 +31,7 @@ you must run `fncli` with sudo permission.
   * sudo pip install --editable .
   * sudo pip install click docker pandas hurry.filesize
 
-    Otherwise, if you run `fncli` without sudo permission, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/e37acce2575...-json.log'`
+    Otherwise, if you run `fncli` without sudo permission, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/***-json.log'`
 
 * `fncli` has been written in Python (using the Click package and Docker SDK for Python).
 
@@ -39,7 +39,6 @@ you must run `fncli` with sudo permission.
 
   Run the following:
   ```
-  $_FNCLI_COMPLETE=source fncli > fncli-complete.sh
+  (venv)$ _FNCLI_COMPLETE=source fncli > fncli-complete.sh
   ```
-  And then add this into your .bashrc:
-  . /path/to/fncli-complete.sh
+  And then add this into your .bashrc file: ```. /path/to/fncli-complete.sh```
