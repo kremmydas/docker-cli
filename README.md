@@ -15,7 +15,7 @@
 ## Installing in virtualenv and running ##
 
 ```
-$ git clone https://github.com/andreask81/docker-cli.git
+$ git clone https://github.com/kremmydas/docker-cli.git
 $ cd docker-cli
 $ virtualenv venv
 $ source venv/bin/activate
@@ -26,7 +26,8 @@ $ source venv/bin/activate
 
 ## Bash completion ##
 
-  As of Click 2.0, there is built-in support for [Bash completion](https://click.palletsprojects.com/en/7.x/bashcomplete/) for any Click script.
+  There is built-in support for [Bash completion](https://click.palletsprojects.com/en/7.x/bashcomplete/) for any Click script.
+
   In order to activate Bash completion, run the following:
   ```
   (venv)$ _FNCLI_COMPLETE=source fncli > fncli-complete.sh
