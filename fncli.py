@@ -6,6 +6,7 @@ from six.moves import input
 import pandas as pd
 from dateutil.parser import parse
 from hurry.filesize import size, si
+import itertools
 
 client = docker.from_env()
 
@@ -14,10 +15,22 @@ def cli():
     """A simple command line tool for docker engine."""
     pass
 
+
+def get_env_vars(ctx, args, incomplete):
+    """Bash completion"""
+    list = client.containers.list()
+    names = []
+    for container in list:
+        names.append(str(container.name))
+        c_list = itertools.chain(names)
+        for name in c_list:
+            yield name
+
+
 @click.command()
 def list():
     """Show running containers."""
-
+    # print(names())
     try:
         headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST IP / PORT', 'NAMES')
         column_width=30
@@ -119,21 +132,10 @@ def mon():
     except (docker.errors.NotFound, KeyError, AttributeError) as e:
         print('No such container or container not running!')
 
-@click.command()
-@click.option('--name', help='The name of a running container')
-@click.argument('name')
-def top(name):
-    """Similar to docker top command."""
-
-    try:
-        container = client.containers.get(name)
-        print(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])))
-    except (docker.errors.NotFound, docker.errors.APIError) as e:
-        print(e)
 
 @click.command()
 @click.option('--name', help='The name of a running container')
-@click.argument('name')
+@click.argument('name', type=click.STRING, autocompletion=get_env_vars)
 def logs(name):
     """Fetch the logs of a container."""
 
@@ -145,7 +147,7 @@ def logs(name):
 
 @click.command()
 @click.option('--name', help='The name of a running container')
-@click.argument('name')
+@click.argument('name', type=click.STRING, autocompletion=get_env_vars)
 def tail(name):
     """Follow log output in real-time."""
 
@@ -154,6 +156,18 @@ def tail(name):
         for line in container.logs(stream=True):
             click.secho(line.strip(),bg='blue', fg='white')
     except docker.errors.NotFound as e:
+        print(e)
+
+@click.command()
+@click.option('--name', help='The name of a running container')
+@click.argument('name', type=click.STRING, autocompletion=get_env_vars)
+def top(name):
+    """Similar to docker top command."""
+
+    try:
+        container = client.containers.get(name)
+        print(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])))
+    except (docker.errors.NotFound, docker.errors.APIError) as e:
         print(e)
 
 @click.command()
