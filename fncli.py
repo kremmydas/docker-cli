@@ -22,15 +22,14 @@ def get_env_vars(ctx, args, incomplete):
     names = []
     for container in list:
         names.append(str(container.name))
-        c_list = itertools.chain(names)
-        for name in c_list:
-            yield name
+    for name in names:
+        c_dict = dict(enumerate(names))
+    return [k for k in c_dict.values() if incomplete in k]
 
 
 @click.command()
 def list():
     """Show running containers."""
-    # print(names())
     try:
         headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST IP / PORT', 'NAMES')
         column_width=30
@@ -67,6 +66,7 @@ def list():
 
     except docker.errors.NotFound as e:
         print(e)
+
 
 @click.command()
 def mon():
@@ -145,6 +145,7 @@ def logs(name):
     except docker.errors.NotFound as e:
         print(e)
 
+
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name', type=click.STRING, autocompletion=get_env_vars)
@@ -158,6 +159,7 @@ def tail(name):
     except docker.errors.NotFound as e:
         print(e)
 
+
 @click.command()
 @click.option('--name', help='The name of a running container')
 @click.argument('name', type=click.STRING, autocompletion=get_env_vars)
@@ -169,6 +171,7 @@ def top(name):
         print(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])))
     except (docker.errors.NotFound, docker.errors.APIError) as e:
         print(e)
+
 
 @click.command()
 def cat():
@@ -190,6 +193,7 @@ def cat():
     except (docker.errors.NotFound, IOError) as e:
         print(e)
 
+
 @click.command()
 @click.option('--dockerfile', help='The full path of Dockerfile, e.g fncli create ./Dockerfile')
 @click.argument('dockerfile')
@@ -208,6 +212,7 @@ def create(dockerfile):
         .format(container_name, port), bg='blue', fg='white')
     except (docker.errors.APIError, TypeError, OSError) as e:
         print(e)
+
 
 # List of commands
 cli.add_command(cat)
