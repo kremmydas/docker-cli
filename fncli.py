@@ -1,3 +1,8 @@
+'''
+    File name: fncli.py
+    Author: Andreas Kremmydas
+'''
+
 from __future__ import division
 import click
 import docker

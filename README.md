@@ -33,8 +33,6 @@ you must run `fncli` with sudo permission.
 
     Otherwise, if you run `fncli` without sudo permission, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/***-json.log'`
 
-* `fncli` has been written in Python (using the Click package and Docker SDK for Python).
-
 * Bash completion:
 
   Run the following:
@@ -42,3 +40,8 @@ you must run `fncli` with sudo permission.
   (venv)$ _FNCLI_COMPLETE=source fncli > fncli-complete.sh
   ```
   And then add this into your .bashrc file: ```. /path/to/fncli-complete.sh```
+
+## Built With ##
+* [Python](https://www.python.org/)
+* [Click](https://click.palletsprojects.com/en/7.x/)
+* [Docker SDK](https://docker-py.readthedocs.io/en/stable/)
