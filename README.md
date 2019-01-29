@@ -24,9 +24,7 @@ $ source venv/bin/activate
 (venv)$ fncli
 ```
 
-## Notes ##
-
-* Bash completion:
+## [Bash completion](https://click.palletsprojects.com/en/7.x/bashcomplete/) ##
 
   Run the following:
   ```
