@@ -10,7 +10,7 @@
 
  You can see the list of commands and features below.
 
- ![usage](/data/out.gif)
+ ![usage](/data/2019-01-29_19:22:24.png)
 
 ## Installation in dev environment and running ##
 
