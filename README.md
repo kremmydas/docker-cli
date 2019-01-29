@@ -12,26 +12,19 @@
 
  ![usage](/data/2019-01-29_19:22:24.png)
 
-## Installation in dev environment and running ##
+## Installing in virtualenv and running ##
 
 ```
 $ git clone https://github.com/andreask81/docker-cli.git
 $ cd docker-cli
 $ virtualenv venv
 $ source venv/bin/activate
-$ pip install --editable .
-$ pip install -r requirements.txt
-$ fncli
+(venv)$ pip install --editable .
+(venv)$ pip install -r requirements.txt
+(venv)$ fncli
 ```
 
 ## Notes ##
-* In order to run the `cat`command (consolidate the log output to a centralized log file),
-you must run `fncli` with sudo permission.
-  Before that, you must also run the following pip install commands with sudo:
-  * ```sudo pip install --editable .```
-  * ```sudo pip install click docker pandas hurry.filesize```
-
-    Otherwise, if you run `fncli` without sudo permission, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/***-json.log'`
 
 * Bash completion:
 

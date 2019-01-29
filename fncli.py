@@ -186,23 +186,14 @@ def top(name):
 
 @click.command()
 def cat():
-    """Consolidate the log output of containers into one centralized log file."""
+    """Consolidate the log output of all the container instances into one centralized log file."""
 
-    client = docker.APIClient(base_url='unix://var/run/docker.sock')
-
-    container_list = [str(x) for x in input('Enter container(s) name, as a space-delimited list: ').split()]
-
-    try:
-        with open("output.log", 'w') as output:
-            for container in container_list:
-                inspect = client.inspect_container(container)
-                extract_key = { k:v for k,v in inspect.items() if 'LogPath' in k }
-                extract_filename = extract_key.get('LogPath')
-                with open(extract_filename,'rb') as write_file:
-                    output.write(str(write_file.read())+ "\n")
-            click.secho('File output.log created.', bg='blue', fg='white')
-    except (docker.errors.NotFound, IOError) as e:
-        print(e)
+    with open("output.log", 'w') as outfile:
+        log_file = []
+        for container in client.containers.list():
+            log_file.append(str(container.logs()))
+            outfile.write(str(log_file))
+        click.secho('File output.log created.', bg='blue', fg='white')
 
 
 @click.command()
