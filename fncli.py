@@ -21,14 +21,16 @@ def get_container_name(ctx, args, incomplete):
     names = []
     for container in list:
         names.append(str(container.name))
-    for name in names:
-        c_dict = dict(enumerate(names))
+
+    c_dict = dict(enumerate(names))
+
     return [k for k in c_dict.values() if incomplete in k]
 
 
 @click.command()
 def list():
     """Show running containers."""
+
     try:
         headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST IP / PORT', 'NAMES')
         column_width=30
