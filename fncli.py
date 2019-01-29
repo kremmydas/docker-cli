@@ -55,9 +55,14 @@ def list():
                 if c_port is not None:
                     hostip = (c_port)[0].get('HostIp')
 
+            # Get Command
+            path = container.attrs.get('Path')
+            args = container.attrs.get('Args')
+            command_arg = str(path) + " " + str(args[0])
+
             # container attributes
             attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),
-                    str(container.attrs.get('Config').get('Cmd')), container.attrs.get('State').get('Status'),
+                    command_arg, container.attrs.get('State').get('Status'),
                     str(parse(container.attrs.get('Created')).ctime()), str(hostip + ':' + port), str(container.name))]
 
             for row in attrs:
