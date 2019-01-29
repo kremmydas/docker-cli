@@ -28,8 +28,8 @@ $ fncli
 * In order to run the `cat`command (consolidate the log output to a centralized log file),
 you must run `fncli` with sudo permission.
   Before that, you must also run the following pip install commands with sudo:
-  * sudo pip install --editable .
-  * sudo pip install click docker pandas hurry.filesize
+  * ```sudo pip install --editable .```
+  * ```sudo pip install click docker pandas hurry.filesize```
 
     Otherwise, if you run `fncli` without sudo permission, you receive an IOError error: [Errno 13] Permission denied `u'/var/lib/docker/containers/***-json.log'`
 
