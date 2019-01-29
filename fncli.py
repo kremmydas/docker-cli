@@ -6,7 +6,6 @@ from six.moves import input
 import pandas as pd
 from dateutil.parser import parse
 from hurry.filesize import size, si
-import itertools
 
 client = docker.from_env()
 
