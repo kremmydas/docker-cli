@@ -15,7 +15,7 @@ def cli():
     pass
 
 
-def get_env_vars(ctx, args, incomplete):
+def get_container_name(ctx, args, incomplete):
     """Bash completion"""
     list = client.containers.list()
     names = []
@@ -134,7 +134,7 @@ def mon():
 
 @click.command()
 @click.option('--name', help='The name of a running container')
-@click.argument('name', type=click.STRING, autocompletion=get_env_vars)
+@click.argument('name', type=click.STRING, autocompletion=get_container_name)
 def logs(name):
     """Fetch the logs of a container."""
 
@@ -147,7 +147,7 @@ def logs(name):
 
 @click.command()
 @click.option('--name', help='The name of a running container')
-@click.argument('name', type=click.STRING, autocompletion=get_env_vars)
+@click.argument('name', type=click.STRING, autocompletion=get_container_name)
 def tail(name):
     """Follow log output in real-time."""
 
@@ -161,7 +161,7 @@ def tail(name):
 
 @click.command()
 @click.option('--name', help='The name of a running container')
-@click.argument('name', type=click.STRING, autocompletion=get_env_vars)
+@click.argument('name', type=click.STRING, autocompletion=get_container_name)
 def top(name):
     """Similar to docker top command."""
 
