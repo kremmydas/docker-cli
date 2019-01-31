@@ -191,7 +191,7 @@ def cat():
     with open("output.log", 'w') as outfile:
         log_file = []
         for container in client.containers.list():
-            log_file.append(str(container.logs()))
+            log_file.append(str(container.logs(timestamps=True).rstrip()))
             outfile.write(str(log_file))
         click.secho('File output.log created.', bg='blue', fg='white')
 
