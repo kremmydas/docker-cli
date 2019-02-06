@@ -22,13 +22,9 @@ def cli():
 
 def get_container_name(ctx, args, incomplete):
     """Bash completion"""
-    list = client.containers.list()
-    names = []
-    for container in list:
-        names.append(str(container.name))
 
+    names = [container.name for container in client.containers.list()]
     c_dict = dict(enumerate(names))
-
     return [k for k in c_dict.values() if incomplete in k]
 
 
