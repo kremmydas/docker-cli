@@ -191,10 +191,11 @@ def cat():
     with open("output.log", 'w') as outfile:
         log_file = []
         for container in client.containers.list():
-            log_file.append(str(container.logs(timestamps=True).rstrip()))
-            log_file.append('****End of Log output****')
-        outfile.write(str(log_file))
-        click.secho('File output.log created.', bg='blue', fg='white')
+            log_file.append(container.logs(timestamps=True).split(","))
+            log_file.append('\n')
+        for c_log in log_file:
+            outfile.write(" ".join(map(str, c_log)))
+        click.secho('Log output of each container has been written to output.log.', bg='blue', fg='white')
 
 
 @click.command()
