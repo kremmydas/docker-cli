@@ -185,12 +185,9 @@ def cat():
     """Consolidate the log output of all the container instances into one centralized log file."""
 
     with open("output.log", 'w') as outfile:
-        log_file = []
-        for container in client.containers.list():
-            log_file.append(container.logs(timestamps=True).split(","))
-            log_file.append('\n')
+        log_file = [container.logs(timestamps=True).split(",") for container in client.containers.list()]
         for c_log in log_file:
-            outfile.write(" ".join(map(str, c_log)))
+             outfile.write(" ".join(map(str, c_log)) + '\n')
         click.secho('Log output of each container has been written to output.log.', bg='blue', fg='white')
 
 
