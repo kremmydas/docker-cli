@@ -1,18 +1,18 @@
 '''
     File name: fncli.py
-    Author: Andreas Kremmydas
+    A simple CLI tool for Docker Engine
 '''
 
 from __future__ import division
+import os.path
 import click
 import docker
-import os.path
 from six.moves import input
 import pandas as pd
 from dateutil.parser import parse
 from hurry.filesize import size, si
 
-client = docker.from_env()
+CLIENT = docker.from_env()
 
 @click.group()
 def cli():
@@ -23,7 +23,7 @@ def cli():
 def get_container_name(ctx, args, incomplete):
     """Bash completion"""
 
-    names = [container.name for container in client.containers.list()]
+    names = [container.name for container in CLIENT.containers.list()]
     c_dict = dict(enumerate(names))
     return [k for k in c_dict.values() if incomplete in k]
 
@@ -33,22 +33,23 @@ def list():
     """Show running containers."""
 
     try:
-        headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED', 'HOST IP / PORT', 'NAMES')
-        column_width=30
+        headers = ('CONTAINER ID', 'IMAGE', 'COMMAND', 'STATUS', 'CREATED',
+                   'HOST IP / PORT', 'NAMES')
+        column_width = 30
         for element in headers:
             print(element.ljust(column_width)),
         print('')
 
-        for container in client.containers.list():
-            column_width=30
+        for container in CLIENT.containers.list():
+            column_width = 30
 
             # Get host port binding
             portbind = container.attrs.get('HostConfig').get('PortBindings')
             if not portbind:
                 port = 'None'
             else:
-                it = iter(portbind.values())
-                port = next(it)[0].get('HostPort')
+                iter_port = iter(portbind.values())
+                port = next(iter_port)[0].get('HostPort')
 
             # Get host IP
             ports = container.attrs.get('NetworkSettings').get('Ports')
@@ -63,16 +64,17 @@ def list():
 
             # container attributes
             attrs = [(str(container.short_id), str(container.attrs.get('Config').get('Image')),
-                    command_arg, container.attrs.get('State').get('Status'),
-                    str(parse(container.attrs.get('Created')).ctime()), str(hostip + ':' + port), str(container.name))]
+                      command_arg, container.attrs.get('State').get('Status'),
+                      str(parse(container.attrs.get('Created')).ctime()),
+                      str(hostip + ':' + port), str(container.name))]
 
             for row in attrs:
                 for element in row:
                     print(element.ljust(column_width)),
                 print('')
 
-    except docker.errors.NotFound as e:
-        print(e)
+    except docker.errors.NotFound as err:
+        print(err)
 
 
 @click.command()
@@ -80,14 +82,15 @@ def mon():
     """Monitor the resource usage of containers."""
 
     try:
-        headers = ('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT', 'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS')
-        column_width=20
+        headers = ('CONTAINER ID', 'NAME', 'CPU %', 'MEM USAGE / LIMIT',
+                   'MEM %', 'NET I/O', 'BLOCK I/O', 'PIDS')
+        column_width = 20
         for element in headers:
             print(element.ljust(column_width)),
         print('')
 
-        for container in client.containers.list():
-            column_width=20
+        for container in CLIENT.containers.list():
+            column_width = 20
             stats = container.stats(stream=False)
 
             # Block I/O stats
@@ -101,8 +104,8 @@ def mon():
                 blkio_write = size(blkio[1].get('value'), system=si)
 
             # Network stats
-            rx = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
-            tx = size(stats.get('networks').get('eth0').get('tx_bytes'), system=si)
+            rx_stats = size(stats.get('networks').get('eth0').get('rx_bytes'), system=si)
+            tx_stats = size(stats.get('networks').get('eth0').get('tx_bytes'), system=si)
 
             # Memory stats
             mem = stats.get('memory_stats')
@@ -111,8 +114,8 @@ def mon():
             mem_percent = ("%.2f"%((mem_usage / mem_limit)*100))
 
             # CPU stats
-            # this is taken directly from docker client:
-            # https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/client/stats.go#L309
+            # this is taken directly from docker CLIENT:
+            # https://github.com/docker/docker/blob/28a7577a029780e4533faf3d057ec9f6c7a10948/api/CLIENT/stats.go#L309
             cpu_percent = 0.0
             cpu = stats.get('cpu_stats')
             pre_cpu = stats.get('precpu_stats')
@@ -127,16 +130,17 @@ def mon():
                 cpu_percent = ("%.2f"%(cpu_delta / system_delta * 100.0 * cpu_count))
 
             # container attributes
-            attrs = [(str(container.short_id), str(container.name), str(cpu_percent), str(size((mem_usage),system=si) + " / "
-                    + size((mem_limit),system=si)), str(mem_percent), str(rx + " / " + tx), str(blkio_read +
-                    " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
+            attrs = [(str(container.short_id), str(container.name), str(cpu_percent),
+                      str(size((mem_usage), system=si) + " / " + size((mem_limit), system=si)),
+                      str(mem_percent), str(rx_stats + " / " + tx_stats),
+                      str(blkio_read + " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
 
             for row in attrs:
                 for element in row:
                     print(element.ljust(column_width)),
                 print('')
 
-    except (docker.errors.NotFound, KeyError, AttributeError) as e:
+    except (docker.errors.NotFound, KeyError, AttributeError):
         print('No such container or container not running!')
 
 
@@ -147,10 +151,10 @@ def logs(name):
     """Fetch the logs of a container."""
 
     try:
-        container = client.containers.get(name)
+        container = CLIENT.containers.get(name)
         click.secho(str(container.logs()), bg='blue', fg='white')
-    except docker.errors.NotFound as e:
-        print(e)
+    except docker.errors.NotFound as err:
+        print(err)
 
 
 @click.command()
@@ -160,11 +164,11 @@ def tail(name):
     """Follow log output in real-time."""
 
     try:
-        container = client.containers.get(name)
+        container = CLIENT.containers.get(name)
         for line in container.logs(stream=True):
-            click.secho(line.strip(),bg='blue', fg='white')
-    except docker.errors.NotFound as e:
-        print(e)
+            click.secho(line.strip(), bg='blue', fg='white')
+    except docker.errors.NotFound as err:
+        print(err)
 
 
 @click.command()
@@ -174,10 +178,11 @@ def top(name):
     """Similar to docker top command."""
 
     try:
-        container = client.containers.get(name)
-        print(str(pd.DataFrame(data=container.top()['Processes'], columns=container.top()['Titles'])))
-    except (docker.errors.NotFound, docker.errors.APIError) as e:
-        print(e)
+        container = CLIENT.containers.get(name)
+        print(str(pd.DataFrame(data=container.top()['Processes'],
+                               columns=container.top()['Titles'])))
+    except (docker.errors.NotFound, docker.errors.APIError) as err:
+        print(err)
 
 
 @click.command()
@@ -185,10 +190,12 @@ def cat():
     """Consolidate the log output of all the container instances into one centralized log file."""
 
     with open("output.log", 'w') as outfile:
-        log_file = [container.logs(timestamps=True).split(",") for container in client.containers.list()]
+        log_file = [container.logs(timestamps=True).split(",") for container in
+                    CLIENT.containers.list()]
         for c_log in log_file:
-             outfile.write(" ".join(map(str, c_log)) + '\n')
-        click.secho('Log output of each container has been written to output.log.', bg='blue', fg='white')
+            outfile.write(" ".join(map(str, c_log)) + '\n')
+        click.secho('Log output of each container has been written to output.log.',
+                    bg='blue', fg='white')
 
 
 @click.command()
@@ -203,12 +210,13 @@ def create(dockerfile):
     port = input('Enter port between 5000 -7000: ')
 
     try:
-        image = client.images.build(path=path, dockerfile=dockerfile, tag="my_app_image")
-        container = client.containers.run('my_app_image', detach=True, ports={'5000/tcp': port}, name=container_name)
+        image = CLIENT.images.build(path=path, dockerfile=dockerfile, tag="my_app_image")
+        container = CLIENT.containers.run('my_app_image', detach=True, ports={'5000/tcp': port},
+                                          name=container_name)
         click.secho('Container created with name: {}. App is running on http://0.0.0.0:{}/ on the host.'
-        .format(container_name, port), bg='blue', fg='white')
-    except (docker.errors.APIError, TypeError, OSError) as e:
-        print(e)
+                    .format(container_name, port), bg='blue', fg='white')
+    except (docker.errors.APIError, TypeError, OSError) as err:
+        print(err)
 
 
 # List of commands
