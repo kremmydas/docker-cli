@@ -29,7 +29,7 @@ def get_container_name(ctx, args, incomplete):
 
 
 @click.command()
-def list():
+def index():
     """Show running containers."""
 
     try:
@@ -78,7 +78,7 @@ def list():
 
 
 @click.command()
-def mon():
+def watch():
     """Monitor the resource usage of containers."""
 
     try:
@@ -133,7 +133,8 @@ def mon():
             attrs = [(str(container.short_id), str(container.name), str(cpu_percent),
                       str(size((mem_usage), system=si) + " / " + size((mem_limit), system=si)),
                       str(mem_percent), str(rx_stats + " / " + tx_stats),
-                      str(blkio_read + " / " + blkio_write), str(stats.get('pids_stats').get('current')))]
+                      str(blkio_read + " / " + blkio_write),
+                      str(stats.get('pids_stats').get('current')))]
 
             for row in attrs:
                 for element in row:
@@ -186,8 +187,8 @@ def top(name):
 
 
 @click.command()
-def cat():
-    """Consolidate the log output of all the container instances into one centralized log file."""
+def mix():
+    """Consolidate the log output of container instances into one centralized log file."""
 
     with open("output.log", 'w') as outfile:
         log_file = [container.logs(timestamps=True).split(",") for container in
@@ -207,23 +208,24 @@ def create(dockerfile):
     path = os.path.dirname(dockerfile)
 
     container_name = input('Enter container name: ')
-    port = input('Enter port between 5000 -7000: ')
+    port = input('Enter port number: ')
 
     try:
         image = CLIENT.images.build(path=path, dockerfile=dockerfile, tag="my_app_image")
         container = CLIENT.containers.run('my_app_image', detach=True, ports={'5000/tcp': port},
                                           name=container_name)
-        click.secho('Container created with name: {}. App is running on http://0.0.0.0:{}/ on the host.'
+        click.secho("Container created with name: {}. App is running "
+                    "on http://0.0.0.0:{}/ on the host."
                     .format(container_name, port), bg='blue', fg='white')
     except (docker.errors.APIError, TypeError, OSError) as err:
         print(err)
 
 
 # List of commands
-cli.add_command(cat)
 cli.add_command(create)
-cli.add_command(list)
+cli.add_command(index)
 cli.add_command(logs)
-cli.add_command(mon)
+cli.add_command(mix)
 cli.add_command(tail)
 cli.add_command(top)
+cli.add_command(watch)
