@@ -208,10 +208,11 @@ def create(dockerfile):
     path = os.path.dirname(dockerfile)
 
     container_name = input('Enter container name: ')
-    port = input('Enter port number: ')
+    port = input('Enter port number to map TCP port 5000 in the container, to a port on the Docker host: ')
 
     try:
         image = CLIENT.images.build(path=path, dockerfile=dockerfile, tag="my_app_image")
+        # Run a container and map TCP port 5000 in the container to a given port on the Docker host.
         container = CLIENT.containers.run('my_app_image', detach=True, ports={'5000/tcp': port},
                                           name=container_name)
         click.secho("Container created with name: {}. App is running "
