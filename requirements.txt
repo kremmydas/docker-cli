@@ -10,7 +10,7 @@ idna==2.8
 ipaddress==1.0.22
 numpy==1.16.0
 pandas==0.23.4
-py==1.4.34
+py==1.10.0
 python-dateutil==2.7.5
 pytz==2018.9
 requests==2.21.0
